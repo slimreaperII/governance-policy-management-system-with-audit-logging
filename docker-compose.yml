@@ -1,0 +1,9 @@
+services:
+
+  postgres:
+    image: postgres:latest
+    container_name: ms-postgres-db
+    environment:
+      POSTGRES_PASSWORD: pass12345
+    ports:
+      - "5433:5432"

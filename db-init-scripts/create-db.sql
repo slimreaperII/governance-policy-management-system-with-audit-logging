@@ -1,0 +1,2 @@
+CREATE DATABASE governance_service_db;
+CREATE DATABASE audit_service_db;

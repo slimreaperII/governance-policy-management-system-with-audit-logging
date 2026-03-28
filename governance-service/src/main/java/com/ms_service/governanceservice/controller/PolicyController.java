@@ -37,7 +37,12 @@ public class PolicyController {
     }
 
     @PostMapping("/{id}/submit")
-    public PolicyResponse submit (@PathVariable Integer id) {
+    public PolicyResponse submitPolicy (@PathVariable Integer id) {
         return policyService.submitPolicy(id);
+    }
+
+    @PostMapping("/{id}/approve")
+    public PolicyResponse approvePolicy (@PathVariable Integer id) {
+        return policyService.approvePolicy(id);
     }
 }

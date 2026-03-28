@@ -45,4 +45,9 @@ public class PolicyController {
     public PolicyResponse approvePolicy (@PathVariable Integer id) {
         return policyService.approvePolicy(id);
     }
+
+    @PostMapping("/{id}/reject")
+    public PolicyResponse rejectPolicy (@PathVariable Integer id) {
+        return policyService.rejectPolicy(id);
+    }
 }

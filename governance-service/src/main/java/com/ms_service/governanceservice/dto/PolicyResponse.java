@@ -1,5 +1,6 @@
 package com.ms_service.governanceservice.dto;
 
+import com.ms_service.governanceservice.policy.Policy;
 import com.ms_service.governanceservice.policy.Status;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,4 +18,15 @@ public class PolicyResponse {
     private Status status;
     private String createdBy;
     private LocalDateTime createdAt;
+
+    public static PolicyResponse from (Policy policy){
+        return new PolicyResponse(
+                policy.getPolicyId(),
+                policy.getTitle(),
+                policy.getDescription(),
+                policy.getStatus(),
+                policy.getCreatedBy(),
+                policy.getCreatedAt()
+        );
+    }
 }

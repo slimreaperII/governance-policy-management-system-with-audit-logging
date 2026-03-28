@@ -31,4 +31,9 @@ public class Policy {
     private String createdBy;
     @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

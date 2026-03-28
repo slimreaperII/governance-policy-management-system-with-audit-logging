@@ -32,7 +32,12 @@ public class PolicyController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public PolicyResponse getPolicy(@PathVariable Integer id) {
+    public PolicyResponse getPolicy (@PathVariable Integer id) {
         return policyService.getPolicyByID(id);
+    }
+
+    @PostMapping("/{id}/submit")
+    public PolicyResponse submit (@PathVariable Integer id) {
+        return policyService.submitPolicy(id);
     }
 }

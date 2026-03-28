@@ -45,4 +45,14 @@ public class PolicyService {
     public PolicyResponse getPolicyByID(Integer id) {
         return repository.findById(id).map(PolicyResponse::from).orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy Not Found."));
     }
+
+    public PolicyResponse submitPolicy (Integer id){
+        Policy policy = repository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy Not Found"));
+        if (policy.getStatus() != Status.DRAFT){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only policies in DRAFT can be submitted");
+        }
+        policy.setStatus(Status.PENDING_APPROVAL);
+
+        return PolicyResponse.from(repository.save(policy));
+    }
 }

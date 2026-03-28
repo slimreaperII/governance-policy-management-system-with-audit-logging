@@ -29,4 +29,10 @@ public class PolicyController {
     public List<PolicyResponse> getAllPolicy (){
         return policyService.getAllPolicy();
     }
+
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public PolicyResponse getPolicy(@PathVariable Integer id) {
+        return policyService.getPolicyByID(id);
+    }
 }

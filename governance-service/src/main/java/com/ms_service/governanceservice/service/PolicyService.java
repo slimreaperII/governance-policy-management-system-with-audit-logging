@@ -41,4 +41,8 @@ public class PolicyService {
     public List<PolicyResponse> getAllPolicy(){
         return repository.findAll().stream().map(PolicyResponse::from).toList();
     }
+
+    public PolicyResponse getPolicyByID(Integer id) {
+        return repository.findById(id).map(PolicyResponse::from).orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy Not Found."));
+    }
 }

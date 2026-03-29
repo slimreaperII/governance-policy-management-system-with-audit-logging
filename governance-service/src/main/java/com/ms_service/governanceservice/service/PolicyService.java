@@ -1,24 +1,31 @@
 package com.ms_service.governanceservice.service;
 
+import com.ms_service.governanceservice.dto.PolicyEvent;
 import com.ms_service.governanceservice.dto.PolicyRequest;
 import com.ms_service.governanceservice.dto.PolicyResponse;
+import com.ms_service.governanceservice.kafka.KafkaProducer;
 import com.ms_service.governanceservice.policy.Policy;
 import com.ms_service.governanceservice.policy.Status;
 import com.ms_service.governanceservice.repository.PolicyRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class PolicyService {
     private final PolicyRepository repository;
+    private final KafkaProducer kafkaProducer;
 
-    public PolicyService(PolicyRepository repository) {
+    public PolicyService(KafkaProducer kafkaProducer, PolicyRepository repository) {
+        this.kafkaProducer = kafkaProducer;
         this.repository = repository;
     }
 
+    @Transactional
     public PolicyResponse createPolicy (PolicyRequest request){
         boolean duplicate = repository.existsByTitleAndCreatedByAndDescription(
                 request.getTitle(),
@@ -35,7 +42,18 @@ public class PolicyService {
         policy.setCreatedBy(request.getCreatedBy());
         policy.setStatus(Status.DRAFT);
 
-        return PolicyResponse.from(repository.save(policy));
+        Policy savedPolicy = repository.save(policy);
+
+        kafkaProducer.sendPolicyEvent(
+                new PolicyEvent(
+                        "policy-created",
+                        savedPolicy.getPolicyId(),
+                        savedPolicy.getCreatedBy(),
+                        LocalDateTime.now()
+                )
+        );
+
+        return PolicyResponse.from(savedPolicy);
     }
 
     public List<PolicyResponse> getAllPolicy(){
@@ -46,6 +64,7 @@ public class PolicyService {
         return repository.findById(id).map(PolicyResponse::from).orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy Not Found."));
     }
 
+    @Transactional
     public PolicyResponse submitPolicy (Integer id){
         Policy policy = repository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy Not Found"));
         if (policy.getStatus() != Status.DRAFT){
@@ -53,26 +72,61 @@ public class PolicyService {
         }
         policy.setStatus(Status.PENDING_APPROVAL);
 
-        return PolicyResponse.from(repository.save(policy));
+        Policy savedPolicy = repository.save(policy);
+
+        kafkaProducer.sendPolicyEvent(
+                new PolicyEvent(
+                        "policy-submitted",
+                        savedPolicy.getPolicyId(),
+                        savedPolicy.getCreatedBy(),
+                        LocalDateTime.now()
+                )
+        );
+
+        return PolicyResponse.from(savedPolicy);
     }
 
+    @Transactional
     public PolicyResponse approvePolicy (Integer id){
         Policy policy = repository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy Not Found"));
         if (policy.getStatus() != Status.PENDING_APPROVAL){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only policies in DRAFT can be submitted");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only policies in PENDING_APPROVAL can be approved");
         }
         policy.setStatus(Status.ACCEPTED);
 
-        return PolicyResponse.from(repository.save(policy));
+        Policy savedPolicy = repository.save(policy);
+
+        kafkaProducer.sendPolicyEvent(
+                new PolicyEvent(
+                        "policy-approved",
+                        savedPolicy.getPolicyId(),
+                        savedPolicy.getCreatedBy(),
+                        LocalDateTime.now()
+                )
+        );
+
+        return PolicyResponse.from(savedPolicy);
     }
 
+    @Transactional
     public PolicyResponse rejectPolicy (Integer id){
         Policy policy = repository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy Not Found"));
         if (policy.getStatus() != Status.PENDING_APPROVAL){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only policies in DRAFT can be submitted");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only policies in PENDING_APPROVAL can be rejected");
         }
         policy.setStatus(Status.REJECTED);
 
-        return PolicyResponse.from(repository.save(policy));
+        Policy savedPolicy = repository.save(policy);
+
+        kafkaProducer.sendPolicyEvent(
+                new PolicyEvent(
+                        "policy-rejected",
+                        savedPolicy.getPolicyId(),
+                        savedPolicy.getCreatedBy(),
+                        LocalDateTime.now()
+                )
+        );
+
+        return PolicyResponse.from(savedPolicy);
     }
 }

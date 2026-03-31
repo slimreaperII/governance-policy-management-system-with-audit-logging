@@ -3,6 +3,7 @@ package com.ms_service.governanceservice.controller;
 import com.ms_service.governanceservice.dto.PolicyRequest;
 import com.ms_service.governanceservice.dto.PolicyResponse;
 import com.ms_service.governanceservice.service.PolicyService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class PolicyController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public PolicyResponse createPolicy (@RequestBody PolicyRequest request){
+    public PolicyResponse createPolicy (@RequestBody @Valid PolicyRequest request){
         return policyService.createPolicy(request);
     }
 

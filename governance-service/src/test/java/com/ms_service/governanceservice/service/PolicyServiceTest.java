@@ -169,6 +169,51 @@ class PolicyServiceTest {
     }
 
     @Nested
+    class deletePolicyTest {
+        @Test
+        void shouldDeletePolicySuccessfully () {
+            //given
+            Policy policy = new Policy();
+            policy.setPolicyId(1);
+            policy.setTitle("title 1");
+            policy.setDescription("desc 1");
+            policy.setCreatedBy("admin 1");
+            policy.setStatus(Status.DRAFT);
+            policy.setCreatedAt(LocalDateTime.now());
+
+            when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
+
+            //when
+            String response = policyService.deletePolicy(1);
+
+            //then
+            assertNotNull(response);
+            assertEquals("Policy deleted successfully", response);
+            verify(policyRepository, times(1)).delete(any(Policy.class));
+            verify(policyRepository, times(1)).findById(anyInt());
+            verify(kafkaProducer, times(1)).sendPolicyEvent(any(PolicyEvent.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenStatusDontMatch () {
+            //given
+            Policy policy = new Policy();
+            policy.setPolicyId(1);
+            policy.setTitle("title 1");
+            policy.setDescription("desc 1");
+            policy.setCreatedBy("admin 1");
+            policy.setStatus(Status.PENDING_APPROVAL);
+            policy.setCreatedAt(LocalDateTime.now());
+
+            when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
+
+            //when//then
+            assertThrows(ResponseStatusException.class, () -> policyService.deletePolicy(1));
+            verify(policyRepository, times(1)).findById(anyInt());
+        }
+    }
+
+    @Nested
     class approvePolicyTest {
         @Test
         void shouldApprovePolicySuccessfully () {

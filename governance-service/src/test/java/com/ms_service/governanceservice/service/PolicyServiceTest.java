@@ -151,6 +151,7 @@ class PolicyServiceTest {
 
         @Test
         void shouldThrowExceptionWhenStatusDontMatch () {
+            //given
             Policy policy = new Policy();
             policy.setPolicyId(1);
             policy.setTitle("title 1");
@@ -162,18 +163,102 @@ class PolicyServiceTest {
             when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
 
             //when//then
-
             assertThrows(ResponseStatusException.class, () -> policyService.submitPolicy(1));
             verify(policyRepository, times(1)).findById(anyInt());
-
         }
     }
 
-    @Test
-    void approvePolicy() {
+    @Nested
+    class approvePolicyTest {
+        @Test
+        void shouldApprovePolicySuccessfully () {
+            //given
+            Policy policy = new Policy();
+            policy.setPolicyId(1);
+            policy.setTitle("title 1");
+            policy.setDescription("desc 1");
+            policy.setCreatedBy("admin 1");
+            policy.setStatus(Status.PENDING_APPROVAL);
+            policy.setCreatedAt(LocalDateTime.now());
+
+            when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
+            when(policyRepository.save(any(Policy.class))).thenReturn(policy);
+
+            //when
+            PolicyResponse response = policyService.approvePolicy(1);
+
+            //then
+            assertNotNull(response);
+            assertEquals("title 1", response.getTitle());
+            assertEquals(Status.ACCEPTED, response.getStatus());
+            verify(policyRepository, times(1)).save(any(Policy.class));
+            verify(policyRepository, times(1)).findById(anyInt());
+            verify(kafkaProducer, times(1)).sendPolicyEvent(any(PolicyEvent.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenStatusDontMatch () {
+            //given
+            Policy policy = new Policy();
+            policy.setPolicyId(1);
+            policy.setTitle("title 1");
+            policy.setDescription("desc 1");
+            policy.setCreatedBy("admin 1");
+            policy.setStatus(Status.DRAFT);
+            policy.setCreatedAt(LocalDateTime.now());
+
+            when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
+
+            //when//then
+            assertThrows(ResponseStatusException.class, () -> policyService.approvePolicy(1));
+            verify(policyRepository, times(1)).findById(anyInt());
+        }
     }
 
-    @Test
-    void rejectPolicy() {
+    @Nested
+    class rejectPolicyTest {
+        @Test
+        void shouldRejectPolicySuccessfully () {
+            //given
+            Policy policy = new Policy();
+            policy.setPolicyId(1);
+            policy.setTitle("title 1");
+            policy.setDescription("desc 1");
+            policy.setCreatedBy("admin 1");
+            policy.setStatus(Status.PENDING_APPROVAL);
+            policy.setCreatedAt(LocalDateTime.now());
+
+            when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
+            when(policyRepository.save(any(Policy.class))).thenReturn(policy);
+
+            //when
+            PolicyResponse response = policyService.rejectPolicy(1);
+
+            //then
+            assertNotNull(response);
+            assertEquals("title 1", response.getTitle());
+            assertEquals(Status.REJECTED, response.getStatus());
+            verify(policyRepository, times(1)).save(any(Policy.class));
+            verify(policyRepository, times(1)).findById(anyInt());
+            verify(kafkaProducer, times(1)).sendPolicyEvent(any(PolicyEvent.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenStatusDontMatch () {
+            //given
+            Policy policy = new Policy();
+            policy.setPolicyId(1);
+            policy.setTitle("title 1");
+            policy.setDescription("desc 1");
+            policy.setCreatedBy("admin 1");
+            policy.setStatus(Status.DRAFT);
+            policy.setCreatedAt(LocalDateTime.now());
+
+            when(policyRepository.findById(1)).thenReturn(Optional.of(policy));
+
+            //when//then
+            assertThrows(ResponseStatusException.class, () -> policyService.rejectPolicy(1));
+            verify(policyRepository, times(1)).findById(anyInt());
+        }
     }
-}
+    }

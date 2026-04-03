@@ -15,6 +15,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -74,17 +78,45 @@ class PolicyServiceTest {
 
             //when
             //then
-            assertThrows(ResponseStatusException.class, () ->
-                    policyService.createPolicy(request));
+            assertThrows(ResponseStatusException.class, () -> policyService.createPolicy(request));
+            verify(policyRepository, times(1)).existsByTitleAndCreatedByAndDescription(anyString(), anyString(), anyString());
         }
     }
 
     @Test
     void getAllPolicy() {
+        //given
+        Policy policy1 = new Policy(1, "title 1", "desc 1", Status.DRAFT, "admin 1", LocalDateTime.now());
+        Policy policy2 = new Policy(2, "title 2", "desc 2", Status.ACCEPTED, "admin 1", LocalDateTime.now());
+        Policy policy3 = new Policy(3, "title 3", "desc 3", Status.PENDING_APPROVAL, "admin 2", LocalDateTime.now());
+
+        when(policyRepository.findAll()).thenReturn(List.of(policy1, policy2, policy3));
+
+        //when
+        List<PolicyResponse> result = policyService.getAllPolicy();
+
+        //then
+        assertNotNull(result);
+        assertEquals("title 1", result.getFirst().getTitle());
+        verify(policyRepository, times(1)).findAll();
     }
 
     @Test
     void getPolicyByID() {
+        //given
+        Policy policy1 = new Policy(1, "title 1", "desc 1", Status.DRAFT, "admin 1", LocalDateTime.now());
+        Policy policy2 = new Policy(2, "title 2", "desc 2", Status.ACCEPTED, "admin 1", LocalDateTime.now());
+        Integer id = 2;
+
+        when(policyRepository.findById(id)).thenReturn(Optional.of(policy2));
+
+        //when
+        PolicyResponse response = policyService.getPolicyByID(id);
+
+        //
+        assertNotNull(response);
+        assertEquals("title 2", response.getTitle());
+        verify(policyRepository, times(1)).findById(anyInt());
     }
 
     @Test

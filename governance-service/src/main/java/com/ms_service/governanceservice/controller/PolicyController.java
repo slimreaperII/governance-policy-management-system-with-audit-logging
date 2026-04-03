@@ -42,6 +42,9 @@ public class PolicyController {
         return policyService.submitPolicy(id);
     }
 
+    @DeleteMapping("/{id}")
+    public String deletePolicy (@PathVariable Integer id) { return policyService.deletePolicy(id); }
+
     @PostMapping("/{id}/approve")
     public PolicyResponse approvePolicy (@PathVariable Integer id) {
         return policyService.approvePolicy(id);

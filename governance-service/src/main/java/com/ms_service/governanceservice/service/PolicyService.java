@@ -61,12 +61,12 @@ public class PolicyService {
     }
 
     public PolicyResponse getPolicyByID(Integer id) {
-        return repository.findById(id).map(PolicyResponse::from).orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy Not Found."));
+        return repository.findById(id).map(PolicyResponse::from).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy Not Found."));
     }
 
     @Transactional
     public PolicyResponse submitPolicy (Integer id){
-        Policy policy = repository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy Not Found"));
+        Policy policy = repository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy Not Found"));
         if (policy.getStatus() != Status.DRAFT){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only policies in DRAFT can be submitted");
         }
@@ -87,8 +87,28 @@ public class PolicyService {
     }
 
     @Transactional
+    public String deletePolicy (Integer id) {
+        Policy policy = repository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy Not Found"));
+        if (policy.getStatus() != Status.DRAFT){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only policies in DRAFT can be deleted");
+        }
+        repository.delete(policy);
+
+        kafkaProducer.sendPolicyEvent(
+                new PolicyEvent(
+                        "policy-deleted",
+                        policy.getPolicyId(),
+                        policy.getCreatedBy(),
+                        LocalDateTime.now()
+                )
+        );
+
+        return "Policy deleted successfully";
+    }
+
+    @Transactional
     public PolicyResponse approvePolicy (Integer id){
-        Policy policy = repository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy Not Found"));
+        Policy policy = repository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy Not Found"));
         if (policy.getStatus() != Status.PENDING_APPROVAL){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only policies in PENDING_APPROVAL can be approved");
         }
@@ -110,7 +130,7 @@ public class PolicyService {
 
     @Transactional
     public PolicyResponse rejectPolicy (Integer id){
-        Policy policy = repository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Policy Not Found"));
+        Policy policy = repository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy Not Found"));
         if (policy.getStatus() != Status.PENDING_APPROVAL){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only policies in PENDING_APPROVAL can be rejected");
         }

@@ -2,6 +2,7 @@ package com.ms_service.governanceservice.controller;
 
 import com.ms_service.governanceservice.dto.PolicyRequest;
 import com.ms_service.governanceservice.dto.PolicyResponse;
+import com.ms_service.governanceservice.policy.Status;
 import com.ms_service.governanceservice.service.PolicyService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -35,6 +36,12 @@ public class PolicyController {
     @ResponseStatus(HttpStatus.OK)
     public PolicyResponse getPolicy (@PathVariable Integer id) {
         return policyService.getPolicyByID(id);
+    }
+
+    @GetMapping("/search")
+    @ResponseStatus(HttpStatus.OK)
+    public List<PolicyResponse> searchForPolicies (@RequestParam(required = false) String title, @RequestParam(required = false) String creator, @RequestParam(required = false) Status status) {
+        return policyService.searchPolicies(title, creator, status);
     }
 
     @PostMapping("/{id}/submit")

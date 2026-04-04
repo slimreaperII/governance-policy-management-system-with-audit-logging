@@ -64,6 +64,21 @@ public class PolicyService {
         return repository.findById(id).map(PolicyResponse::from).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy Not Found."));
     }
 
+    public List<PolicyResponse> searchPolicies (String title, String creator, Status status) {
+        title = (title == null) ? "" : title;
+        creator = (creator == null) ? "" : creator;
+
+        List<Policy> policies;
+
+        if (status == null) {
+            policies = repository.findByTitleContainingIgnoreCaseAndCreatedByContainingIgnoreCase(title, creator);
+        } else {
+            policies = repository.findByTitleContainingIgnoreCaseAndCreatedByContainingIgnoreCaseAndStatus(title, creator, status);
+        }
+
+        return policies.stream().map(PolicyResponse::from).toList();
+    }
+
     @Transactional
     public PolicyResponse submitPolicy (Integer id){
         Policy policy = repository.findById(id).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Policy Not Found"));

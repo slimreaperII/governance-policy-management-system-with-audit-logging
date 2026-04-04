@@ -10,12 +10,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,7 +46,6 @@ class KafkaProducerTest {
         verify(kafkaTemplate, times(1)).send(messageCaptor.capture());
 
         Message<PolicyEvent> message = messageCaptor.getValue();
-        assertNotNull(message);
         assertEquals("governance-events", message.getHeaders().get("kafka_topic"));
         assertEquals(event, message.getPayload());
     }

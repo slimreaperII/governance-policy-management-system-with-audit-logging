@@ -12,15 +12,16 @@ It consists of two independent services:
 Communication between services uses event-driven architecture using Kafka, ensuring loose coupling and scalability.
 
 **Built With**
-* Spring Boot – Backend framework  
-* PostgreSQL – Data persistence  
-* Apache Kafka – Event messaging  
-* Docker – Containerized infrastructure  
+* Spring Boot – Backend framework
+* PostgreSQL – Data persistence
+* Apache Kafka – Event messaging
+* Docker – Containerized infrastructure
 
 ### Features
 *   Create and manage governance policies
 *   Submit policies for approval
 *   Approve or reject policies
+*   Search for policies
 *   Publish governance events when policy actions occur
 *   Persist policies and audit records in the database
 
@@ -45,19 +46,19 @@ Communication between services uses event-driven architecture using Kafka, ensur
 To set up and run this project, you will need the following installed on your system:
 
 *   Docker & Docker compose
-*   Java (JDK 25/26)
-*   maven 
+*   Java (JDK 21+)
+*   maven
 
 ## Installation & Setup Instructions
 
 + run docker conatiner
-  
+
   ```bash
    cd governance-policy-management-system-with-audit-logging
    docker compose up -d
   ```
 + run backend services
-   
+
   ```bash 
    cd governance-service
    ./mvnw.cmd spring-boot:run
@@ -71,29 +72,41 @@ To set up and run this project, you will need the following installed on your sy
 ## API Endpoints
 
 * Create Policy
-  
-    `POST /api/policies`
+
+  `POST /api/policies`
 
 * Get all policies
-  
-    `GET /api/policies`
+
+  `GET /api/policies`
 
 * Get policy by id
 
-    `GET /api/policies/{id}`
-  
+  `GET /api/policies/{id}`
+
 * Submit policy for approval
-  
-    `POST /api/policies/{id}/submit`
-  
+
+  `POST /api/policies/{id}/submit`
+
 * Approve policy
 
-    `POST /api/policies/{id}/approve`
+  `POST /api/policies/{id}/approve`
 
 * Reject policy
 
-    `POST /api/policies/{id}/reject`
+  `POST /api/policies/{id}/reject`
 
+* Delete Policy
+
+  `DELETE /api/policies/{id}`
+
+* Search Policies
+
+  `GET /api/policies/search`
+    
+  - add search parameters to find specific policies or search by title, creator, or status. 
+
+## Swagger - api documentation
+    `http://localhost:8080/swagger-ui/index.html#/`
 
 ## Note
 

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option java_multiple_files=true;
+option java_package="com.ms_service.auditservice.grpc";
+option java_outer_classname="AuditLogProto";
+import "google/protobuf/timestamp.proto";
+
+message AuditLogRequest {
+  int32 policyId=1;
+}
+
+message AuditLogResponseList {
+  repeated AuditLogResponse auditLogResponse=1;
+}
+
+message AuditLogResponse {
+  string eventType =1;
+  int32 policyId=2;
+  string actor=3;
+  google.protobuf.Timestamp timestamp=4;
+}
+
+service AuditLogService {
+  rpc GetAllPolicyLog (AuditLogRequest) returns (AuditLogResponseList);
+}

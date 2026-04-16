@@ -3,6 +3,9 @@ package com.ms_service.governanceservice.service;
 import com.ms_service.governanceservice.dto.PolicyEvent;
 import com.ms_service.governanceservice.dto.PolicyRequest;
 import com.ms_service.governanceservice.dto.PolicyResponse;
+import com.ms_service.governanceservice.grpc.AuditLogRequest;
+import com.ms_service.governanceservice.grpc.AuditLogResponseList;
+import com.ms_service.governanceservice.grpc.AuditLogServiceGrpc;
 import com.ms_service.governanceservice.kafka.KafkaProducer;
 import com.ms_service.governanceservice.policy.Policy;
 import com.ms_service.governanceservice.policy.Status;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,10 +23,12 @@ import java.util.List;
 public class PolicyService {
     private final PolicyRepository repository;
     private final KafkaProducer kafkaProducer;
+    private final AuditLogServiceGrpc.AuditLogServiceBlockingStub auditLogServiceBlockingStub;
 
-    public PolicyService(KafkaProducer kafkaProducer, PolicyRepository repository) {
-        this.kafkaProducer = kafkaProducer;
+    public PolicyService(PolicyRepository repository, KafkaProducer kafkaProducer, AuditLogServiceGrpc.AuditLogServiceBlockingStub auditLogServiceBlockingStub) {
         this.repository = repository;
+        this.kafkaProducer = kafkaProducer;
+        this.auditLogServiceBlockingStub = auditLogServiceBlockingStub;
     }
 
     @Transactional
@@ -164,4 +170,22 @@ public class PolicyService {
 
         return PolicyResponse.from(savedPolicy);
     }
+
+    public List<PolicyEvent> getAllAuditLogsByPolicyId (Integer id) {
+        AuditLogRequest request = AuditLogRequest.newBuilder().setPolicyId(id).build();
+        AuditLogResponseList auditLogResponseList = auditLogServiceBlockingStub.getAllPolicyLog(request);
+
+        return auditLogResponseList.getAuditLogResponseList().stream().map(
+                log -> new PolicyEvent(
+                        log.getEventType(),
+                        log.getPolicyId(),
+                        log.getActor(),
+                        LocalDateTime.ofInstant(Instant.ofEpochSecond(
+                        log.getTimestamp().getSeconds(),
+                        log.getTimestamp().getNanos()
+                        ), java.time.ZoneId.systemDefault()
+                        )
+                )).toList();
+    }
+
 }

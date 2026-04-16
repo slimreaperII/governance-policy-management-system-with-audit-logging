@@ -1,5 +1,6 @@
 package com.ms_service.governanceservice.controller;
 
+import com.ms_service.governanceservice.dto.PolicyEvent;
 import com.ms_service.governanceservice.dto.PolicyRequest;
 import com.ms_service.governanceservice.dto.PolicyResponse;
 import com.ms_service.governanceservice.policy.Status;
@@ -60,5 +61,10 @@ public class PolicyController {
     @PostMapping("/{id}/reject")
     public PolicyResponse rejectPolicy (@PathVariable Integer id) {
         return policyService.rejectPolicy(id);
+    }
+
+    @GetMapping("/{id}/logs")
+    public List<PolicyEvent> auditLogs (@PathVariable Integer id) {
+        return policyService.getAllAuditLogsByPolicyId(id);
     }
 }

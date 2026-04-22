@@ -29,6 +29,7 @@ public class UserService {
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(request.getPassword());
+        user.setRole("user");
 
         return UserResponse.mapper(userRepository.save(user));
     }

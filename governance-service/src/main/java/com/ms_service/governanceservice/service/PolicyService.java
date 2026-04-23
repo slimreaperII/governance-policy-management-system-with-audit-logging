@@ -10,6 +10,7 @@ import com.ms_service.governanceservice.kafka.KafkaProducer;
 import com.ms_service.governanceservice.policy.Policy;
 import com.ms_service.governanceservice.policy.Status;
 import com.ms_service.governanceservice.repository.PolicyRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -171,6 +172,7 @@ public class PolicyService {
         return PolicyResponse.from(savedPolicy);
     }
 
+    @CircuitBreaker( name = "governanceService", fallbackMethod = "AuditLogFallback")
     public List<PolicyEvent> getAllAuditLogsByPolicyId (Integer id) {
         AuditLogRequest request = AuditLogRequest.newBuilder().setPolicyId(id).build();
         AuditLogResponseList auditLogResponseList = auditLogServiceBlockingStub.getAllPolicyLog(request);
@@ -186,6 +188,17 @@ public class PolicyService {
                         ), java.time.ZoneId.systemDefault()
                         )
                 )).toList();
+    }
+
+    public List<PolicyEvent> AuditLogFallback (Integer id, Throwable e) {
+        return List.of(
+                new PolicyEvent(
+                        "audit-log temporarily unavailable, please try again later.",
+                        id,
+                        "system",
+                        LocalDateTime.now()
+                )
+        );
     }
 
 }

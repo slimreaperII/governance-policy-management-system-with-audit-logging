@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface AuditLogRepository extends JpaRepository<AuditLog, Integer> {
     List<AuditLog> findAllByPolicyId (Integer id);
+    boolean existsByEventTypeAndPolicyId (String eventType, Integer policyId);
 }

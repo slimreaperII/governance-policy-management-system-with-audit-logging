@@ -42,34 +42,36 @@ public class KafkaConsumer {
             throw new RuntimeException(e);
         }
 
-        log.info(event.getSagaId().toString());
+        if (
+                !auditLogRepository.existsByEventTypeAndPolicyId(event.getEventType(), event.getPolicyId())
+        ){
+            AuditLog log = new AuditLog();
+            log.setEventType(event.getEventType());
+            log.setPolicyId(event.getPolicyId());
+            log.setActor(event.getActor());
+            log.setTimeStamp(event.getTimestamp());
 
-        AuditLog log = new AuditLog();
-        log.setEventType(event.getEventType());
-        log.setPolicyId(event.getPolicyId());
-        log.setActor(event.getActor());
-        log.setTimeStamp(event.getTimestamp());
+            auditLogRepository.save(log);
 
-        auditLogRepository.save(log);
+            AuditResult auditResult = new AuditResult();
+            auditResult.setSagaId(event.getSagaId());
+            auditResult.setAuditResult(ResultStatus.SUCCESSFUL_AUDIT);
 
-        AuditResult auditResult = new AuditResult();
-        auditResult.setSagaId(event.getSagaId());
-        auditResult.setAuditResult(ResultStatus.SUCCESSFUL_AUDIT);
+            String resultPayload;
+            try {
+                resultPayload = objectMapper.writeValueAsString(auditResult);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Failed to serialize event", e);
+            }
 
-        String resultPayload;
-        try {
-            resultPayload = objectMapper.writeValueAsString(auditResult);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize event", e);
+            OutboxMessage result = new OutboxMessage();
+            result.setSagaId(event.getSagaId());
+            result.setType(OutboxMessageType.SUCCESSFUL_AUDIT);
+            result.setCreatedAt(Instant.now());
+            result.setPayload(resultPayload);
+            result.setOutboxStatus(OutboxStatus.STARTED);
+
+            outboxRepository.save(result);
         }
-
-        OutboxMessage result = new OutboxMessage();
-        result.setSagaId(event.getSagaId());
-        result.setType(OutboxMessageType.SUCCESSFUL_AUDIT);
-        result.setCreatedAt(Instant.now());
-        result.setPayload(resultPayload);
-        result.setOutboxStatus(OutboxStatus.STARTED);
-
-        outboxRepository.save(result);
     }
 }

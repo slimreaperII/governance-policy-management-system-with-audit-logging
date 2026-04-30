@@ -24,7 +24,7 @@ public class OutboxProcessor {
     public void processOutbox() {
 
         List<OutboxMessage> messages =
-                outboxRepository.findAllByOutboxStatusOrderByCreatedAtAsc(OutboxStatus.STARTED);
+                outboxRepository.findAllByOutboxStatusOrSagaStatusOrderByCreatedAtAsc(OutboxStatus.STARTED, SagaStatus.STARTED);
 
         for (OutboxMessage message : messages) {
             kafkaProducer.sendPolicyEvent(message.getPayload());

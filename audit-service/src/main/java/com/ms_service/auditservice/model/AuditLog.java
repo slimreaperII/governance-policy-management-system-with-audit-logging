@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -25,5 +25,5 @@ public class AuditLog {
     @Column(nullable = false)
     private String actor;
     @Column(nullable = false)
-    private LocalDateTime timeStamp;
+    private Instant timeStamp;
 }

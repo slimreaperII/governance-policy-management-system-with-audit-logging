@@ -1,5 +1,6 @@
 package com.ms_service.auditservice.service;
 
+import com.google.protobuf.Timestamp;
 import com.ms_service.auditservice.grpc.AuditLogRequest;
 import com.ms_service.auditservice.grpc.AuditLogResponse;
 import com.ms_service.auditservice.grpc.AuditLogResponseList;
@@ -29,9 +30,8 @@ public class AuditLogServiceImpl extends AuditLogServiceGrpc.AuditLogServiceImpl
                 .setEventType(auditLog.getEventType())
                 .setPolicyId(auditLog.getPolicyId())
                 .setActor(auditLog.getActor())
-                .setTimestamp(com.google.protobuf.Timestamp.newBuilder()
-                        .setSeconds(auditLog.getTimeStamp()
-                                .atZone(java.time.ZoneId.systemDefault()).toEpochSecond())
+                .setTimestamp(Timestamp.newBuilder()
+                        .setSeconds(auditLog.getTimeStamp().getEpochSecond())
                         .setNanos(auditLog.getTimeStamp().getNano())
                         .build())
                 .build()).toList();

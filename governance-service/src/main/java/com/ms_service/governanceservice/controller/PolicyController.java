@@ -63,8 +63,8 @@ public class PolicyController {
         return policyService.rejectPolicy(id);
     }
 
-    @GetMapping("/{id}/logs")
-    public List<PolicyEvent> auditLogs (@PathVariable Integer id) {
-        return policyService.getAllAuditLogsByPolicyId(id);
-    }
+//    @GetMapping("/{id}/logs")
+//    public List<PolicyEvent> auditLogs (@PathVariable Integer id) {
+//        return policyService.getAllAuditLogsByPolicyId(id);
+//    }
 }

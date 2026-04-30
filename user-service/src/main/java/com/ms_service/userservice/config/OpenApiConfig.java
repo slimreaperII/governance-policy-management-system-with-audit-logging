@@ -29,7 +29,6 @@ public class OpenApiConfig {
                                         .scheme("bearer")
                                         .bearerFormat("JWT")
                                         .description("JWT Bearer token authentication"))
-
                 );
     }
 }
